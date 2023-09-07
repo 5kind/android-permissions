@@ -8,6 +8,7 @@ declare -A SPECIAL_USERNAMES=(
   # Or whose friendly names exists on Linux.
   [AID_INPUT]="aid_input"
   [AID_AUDIO]="aid_audio"
+  [AID_LOG]="aid_log"
   [AID_DBUS]="aid_dbus"
   [AID_NOBODY]="aid_nobody"
 )

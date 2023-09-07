@@ -18,7 +18,7 @@ process_definition() {
   if [[ $line =~ $regex ]]; then
     local username="${BASH_REMATCH[1]}"
     local uid="${BASH_REMATCH[2]}"
-    local gecos="${BASH_REMATCH[5]}"
+    local gecos="${BASH_REMATCH[5]//:/}"
     if [[ $uid -ge 1000 && $uid -lt 10000 && $username != *_START && $username != *_END || $uid -eq 65534 ]]; then
     # uid ∈ [1000,10000)|65534  &&  username !=[*_START|*_END]
       if [[ "${SPECIAL_USERNAMES[$username]}" != "" ]]; then

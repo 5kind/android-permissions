@@ -6,6 +6,8 @@ declare -A SPECIAL_USERNAMES=(
   [AID_MEDIA_EX]="mediaex"
   [AID_MEDIA_DRM]="mediadrm"
   # Or whose friendly names exists on Linux.
+  [AID_INPUT]="aid_input"
+  [AID_AUDIO]="aid_audio"
   [AID_DBUS]="aid_dbus"
   [AID_NOBODY]="aid_nobody"
 )

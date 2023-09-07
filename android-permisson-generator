@@ -37,11 +37,11 @@ process_definition() {
 }
 
 single_line_useradd(){
-    useradd "$username" --uid "$uid" --comment "$gecos" --home-dir "/" --shell "/usr/sbin/nologin" --non-unique --system --user-group
+    useradd "$username" --uid "$uid" --comment "$gecos" --home-dir "/" --shell "/usr/sbin/nologin" --non-unique --user-group
 }
 
 single_line_groupadd(){
-    groupadd "$username" --gid "$uid" --non-unique --system
+    groupadd "$username" --gid "$uid" --non-unique
 }
 
 single_line_userdel(){

@@ -1,0 +1,113 @@
+#!/bin/bash
+
+declare -A SPECIAL_USERNAMES=(
+  # Whose friendly names do not match the #define statements.
+  [AID_MEDIA_CODEC]="mediacodec"
+  [AID_MEDIA_EX]="mediaex"
+  [AID_MEDIA_DRM]="mediadrm"
+  # Or whose friendly names exists on Linux.
+  [AID_DBUS]="aid_dbus"
+  [AID_NOBODY]="aid_nobody"
+)
+
+process_definition() {
+  local line="$1"
+  local regex="^[[:space:]]*#define ([^[:space:]]+)[[:space:]]+([^[:space:]]+)([[:space:]]*)(\/\*([^*]*)\*\/)?"
+  local single_process=$2
+  # match #define AID_FOO_BAR 6666 /* foo bar */    -> foo_bar 6666 " foo bar "
+  if [[ $line =~ $regex ]]; then
+    local username="${BASH_REMATCH[1]}"
+    local uid="${BASH_REMATCH[2]}"
+    local gecos="${BASH_REMATCH[5]}"
+    if [[ $uid -ge 1000 && $uid -lt 10000 && $username != *_START && $username != *_END || $uid -eq 65534 ]]; then
+    # uid ∈ [1000,10000)|65534  &&  username !=[*_START|*_END]
+      if [[ "${SPECIAL_USERNAMES[$username]}" != "" ]]; then
+      # replace SPECIAL_USERNAMES
+        username="${SPECIAL_USERNAMES[$username]}"
+      else
+      # remove AID_ &&  translate upper -> lower
+        username=${username#AID_}
+        username=$(echo "$username" | tr '[:upper:]' '[:lower:]')
+      fi
+      eval $single_process
+    fi
+  fi
+}
+
+single_line_useradd(){
+    useradd "$username" --uid "$uid" --comment "$gecos" --home-dir "/" --shell "/bin/nologin" --non-unique --system --user-group
+}
+
+single_line_groupadd(){
+    groupadd "$username" --gid "$uid" --non-unique --system
+}
+
+single_line_userdel(){
+    userdel --force "$username"
+}
+
+single_line_groupdel(){
+    groupdel --force "$username"
+}
+
+single_line_usermod_append_groups(){
+    usermod --append --groups "$username" "$1"
+}
+
+single_line_gpasswd_delete(){
+    gpasswd --delete "$1" "$username"
+}
+
+single_line_sysuser(){
+    printf "u\t%s\t%s\t\"%s\"\n" "$username" "$uid" "$gecos"
+}
+
+android_filesystem_config_process(){
+    local input_file=${2:-"android_filesystem_config.h"}
+    local single_process=${1:-"single_line_sysuser"}
+
+    while IFS= read -r line ; do
+        process_definition "$line" "$single_process"
+    done < "$input_file"
+}
+
+usage(){
+  cat <<EOF
+usage: ${0##*/} [command] [config_file]
+    -h|--help|help      Print this help message
+    useradd             add aid_user to the system
+    userdel             delete aid_user in the system
+    groupadd            add aid_user to the system as groups
+    groupdel            delete aid_groups in the system
+    "usermod \$user"    append aid_groups for \$user
+    "gpasswd \$user"    delete \$user from aid_groups
+EOF
+}
+
+main(){
+    case $1 in
+        -h|--help|help)
+            usage   &&  exit 0  ;;
+        useradd)
+            single_process=single_line_useradd  ;;
+        userdel)
+            single_process=single_line_userdel  ;;
+        groupadd)
+            single_process=single_line_groupadd ;;
+        groupdel)
+            single_process=single_line_groupdel ;;
+        usermod)
+            single_process="single_line_usermod_append_groups $2"   ;;
+        gpasswd)
+            single_process="single_line_gpasswd_delete $2"          ;;
+        *)
+            android_filesystem_config_process ${@}  &&  exit 0      ;;
+    esac
+
+    android_filesystem_config_process "$single_process"
+}
+
+if [[ ${BASH_SOURCE[0]} = $0 ]]; then
+    cd $(dirname $0)
+    main ${@}
+fi

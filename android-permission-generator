@@ -82,8 +82,9 @@ usage: ${0##*/} [command] [config_file]
     userdel             delete aid_user in the system
     groupadd            add aid_user to the system as groups
     groupdel            delete aid_groups in the system
-    "usermod \$user"    append aid_groups for \$user
-    "gpasswd \$user"    delete \$user from aid_groups
+    usermod [user]      append aid_groups for \$user
+    gpasswd [user]      delete \$user from aid_groups
+    [''|sysuser] [file] generator android-premission.sysusers
 EOF
 }
 
@@ -103,11 +104,13 @@ main(){
             single_process="single_line_usermod_append_groups $2"   ;;
         gpasswd)
             single_process="single_line_gpasswd_delete $2"          ;;
+        sysuser)
+            single_process="single_line_sysuser" && input_file=$2   ;;
         *)
-            android_filesystem_config_process ${@}  &&  exit 0      ;;
+            single_process="single_line_sysuser" && input_file=$1   ;;
     esac
 
-    android_filesystem_config_process "$single_process"
+    android_filesystem_config_process "$single_process" "$input_file"
 }
 
 if [[ ${BASH_SOURCE[0]} = $0 ]]; then

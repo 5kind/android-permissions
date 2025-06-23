@@ -71,8 +71,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           # Use date and short SHA for a unique pre-release tag
-          tag_name: "auto-${{ steps.get_branch.outputs.branch_name }}-${{ env.TZ }}-${{ fromJSON(steps.commit_push.outputs.commit_hash_short) }}"
-          name: "Auto-generated AIDs for ${{ steps.get_branch.outputs.branch_name }} (${{ fromJSON(steps.commit_push.outputs.commit_hash_short) }})"
+          tag_name: "auto-${{ steps.get_branch.outputs.branch_name }}-${{ env.TZ }}-${{ steps.commit_push.outputs.commit_hash_short }}"
+          
+          name: "Auto-generated AIDs for ${{ steps.get_branch.outputs.branch_name }} (${{ steps.commit_push.outputs.commit_hash_short }})"
+          
           body: "Automated pre-release with updated AID configuration files."
           prerelease: true
           # Upload all files from the release directory as assets

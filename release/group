@@ -1,8 +1,3 @@
-aid_root:x:0:
-aid_daemon:x:1:
-aid_bin:x:2:
-aid_sys:x:3:
-aid_system:x:1000:
 aid_radio:x:1001:
 aid_bluetooth:x:1002:
 aid_graphics:x:1003:
@@ -101,3 +96,18 @@ aid_mmd:x:1095:
 aid_shell:x:2000:
 aid_cache:x:2001:
 aid_diag:x:2002:
+aid_net_bt_admin:x:3001:
+aid_net_bt:x:3002:
+aid_inet:x:3003:
+aid_net_raw:x:3004:
+aid_net_admin:x:3005:
+aid_net_bw_stats:x:3006:
+aid_net_bw_acct:x:3007:
+aid_readproc:x:3009:
+aid_wakelock:x:3010:
+aid_uhid:x:3011:
+aid_readtracefs:x:3012:
+aid_virtualmachine:x:3013:
+aid_everybody:x:9997:
+aid_misc:x:9998:
+aid_nobody:x:9999:

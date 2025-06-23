@@ -1,16 +1,6 @@
 #!/bin/sh
 # Auto-generated script to create Android system users and groups
 set -e
-groupadd -r -g 0 aid_root
-useradd -r -u 0 -g 0 -s /sbin/nologin -d /dev/null aid_root
-groupadd -r -g 1 aid_daemon
-useradd -r -u 1 -g 1 -s /sbin/nologin -d /dev/null aid_daemon
-groupadd -r -g 2 aid_bin
-useradd -r -u 2 -g 2 -s /sbin/nologin -d /dev/null aid_bin
-groupadd -r -g 3 aid_sys
-useradd -r -u 3 -g 3 -s /sbin/nologin -d /dev/null aid_sys
-groupadd -r -g 1000 aid_system
-useradd -r -u 1000 -g 1000 -s /sbin/nologin -d /dev/null aid_system
 groupadd -r -g 1001 aid_radio
 useradd -r -u 1001 -g 1001 -s /sbin/nologin -d /dev/null aid_radio
 groupadd -r -g 1002 aid_bluetooth
@@ -207,3 +197,33 @@ groupadd -r -g 2001 aid_cache
 useradd -r -u 2001 -g 2001 -s /sbin/nologin -d /dev/null aid_cache
 groupadd -r -g 2002 aid_diag
 useradd -r -u 2002 -g 2002 -s /sbin/nologin -d /dev/null aid_diag
+groupadd -r -g 3001 aid_net_bt_admin
+useradd -r -u 3001 -g 3001 -s /sbin/nologin -d /dev/null aid_net_bt_admin
+groupadd -r -g 3002 aid_net_bt
+useradd -r -u 3002 -g 3002 -s /sbin/nologin -d /dev/null aid_net_bt
+groupadd -r -g 3003 aid_inet
+useradd -r -u 3003 -g 3003 -s /sbin/nologin -d /dev/null aid_inet
+groupadd -r -g 3004 aid_net_raw
+useradd -r -u 3004 -g 3004 -s /sbin/nologin -d /dev/null aid_net_raw
+groupadd -r -g 3005 aid_net_admin
+useradd -r -u 3005 -g 3005 -s /sbin/nologin -d /dev/null aid_net_admin
+groupadd -r -g 3006 aid_net_bw_stats
+useradd -r -u 3006 -g 3006 -s /sbin/nologin -d /dev/null aid_net_bw_stats
+groupadd -r -g 3007 aid_net_bw_acct
+useradd -r -u 3007 -g 3007 -s /sbin/nologin -d /dev/null aid_net_bw_acct
+groupadd -r -g 3009 aid_readproc
+useradd -r -u 3009 -g 3009 -s /sbin/nologin -d /dev/null aid_readproc
+groupadd -r -g 3010 aid_wakelock
+useradd -r -u 3010 -g 3010 -s /sbin/nologin -d /dev/null aid_wakelock
+groupadd -r -g 3011 aid_uhid
+useradd -r -u 3011 -g 3011 -s /sbin/nologin -d /dev/null aid_uhid
+groupadd -r -g 3012 aid_readtracefs
+useradd -r -u 3012 -g 3012 -s /sbin/nologin -d /dev/null aid_readtracefs
+groupadd -r -g 3013 aid_virtualmachine
+useradd -r -u 3013 -g 3013 -s /sbin/nologin -d /dev/null aid_virtualmachine
+groupadd -r -g 9997 aid_everybody
+useradd -r -u 9997 -g 9997 -s /sbin/nologin -d /dev/null aid_everybody
+groupadd -r -g 9998 aid_misc
+useradd -r -u 9998 -g 9998 -s /sbin/nologin -d /dev/null aid_misc
+groupadd -r -g 9999 aid_nobody
+useradd -r -u 9999 -g 9999 -s /sbin/nologin -d /dev/null aid_nobody

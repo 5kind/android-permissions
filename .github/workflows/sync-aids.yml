@@ -1,0 +1,76 @@
+name: Sync AIDs from AOSP and Publish Release
+
+on:
+  push:
+    branches:
+      - '**' # Run on pushes to all branches
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Get branch name
+        id: get_branch
+        run: echo "branch_name=${GITHUB_REF##*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Download android_filesystem_config.h
+        id: download_header
+        run: |
+          BRANCH="${{ steps.get_branch.outputs.branch_name }}"
+          URL="https://android.googlesource.com/platform/system/core/+/refs/heads/${BRANCH}/include/private/android_filesystem_config.h?format=TEXT"
+          echo "Fetching from ${URL}"
+          # Use curl -f to fail if the URL returns a 404 error
+          if curl -fL "${URL}" | base64 --decode > android_filesystem_config.h; then
+            echo "Download successful."
+            echo "downloaded=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Failed to download for branch ${BRANCH}. It might not exist in AOSP."
+            echo "downloaded=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate all config files
+        if: steps.download_header.outputs.downloaded == 'true'
+        run: |
+          # Ensure the generation script is executable
+          chmod +x ./generate-aids.sh
+          
+          # Create the release directory
+          mkdir -p release
+          
+          # Generate files into the release directory with new names
+          ./generate-aids.sh passwd android_filesystem_config.h > release/passwd
+          ./generate-aids.sh group android_filesystem_config.h > release/group
+          ./generate-aids.sh adduser android_filesystem_config.h > release/adduser.sh
+          ./generate-aids.sh sysusers android_filesystem_config.h > release/aids.conf
+          
+          # Give the generated shell script executable permissions
+          chmod +x release/adduser.sh
+          
+          echo "All config files generated in release/ directory."
+
+      - name: Commit and push changes
+        if: steps.download_header.outputs.downloaded == 'true'
+        id: commit_push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci: Update AIDs and generated files for ${{ steps.get_branch.outputs.branch_name }}"
+          # Only commit the config header and the release directory
+          file_pattern: "android_filesystem_config.h release/"
+          
+      - name: Create Pre-release on main branch
+        # Run only if on the main branch AND if the commit step actually made changes
+        if: steps.download_header.outputs.downloaded == 'true' && steps.commit_push.outputs.changes_detected == 'true' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          # Use date and short SHA for a unique pre-release tag
+          tag_name: "auto-${{ steps.get_branch.outputs.branch_name }}-${{ env.TZ }}-${{ fromJSON(steps.commit_push.outputs.commit_hash_short) }}"
+          name: "Auto-generated AIDs for ${{ steps.get_branch.outputs.branch_name }} (${{ fromJSON(steps.commit_push.outputs.commit_hash_short) }})"
+          body: "Automated pre-release with updated AID configuration files."
+          prerelease: true
+          # Upload all files from the release directory as assets
+          files: release/*

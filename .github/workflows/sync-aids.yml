@@ -64,18 +64,48 @@ jobs:
           commit_message: "ci: Update AIDs and generated files for ${{ steps.get_branch.outputs.branch_name }}"
           # Only commit the config header and the release directory
           file_pattern: "android_filesystem_config.h release/"
+
+      - name: Generate Next Sequential Tag
+        # Ensure this step uses the same condition as the release creation step
+        if: steps.download_header.outputs.downloaded == 'true' && steps.commit_push.outputs.changes_detected == 'true' && github.ref == 'refs/heads/main'
+        id: generate_tag
+        run: |
+          # 1. Get the base tag for the current week, e.g. '25w34'
+          BASE_TAG=$(date -u +'%yw%V')
+          echo "Base tag for this week: $BASE_TAG"
           
+          # 2. Fetch all remote tags to get the latest state
+          git fetch --prune --tags
+          
+          # 3. Find the latest existing tag for the current week
+          LATEST_TAG=$(git tag -l "${BASE_TAG}*" | sort -V | tail -n 1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # 4a. If no tag exists for this week, start with 'a'
+            NEXT_SUFFIX='a'
+            echo "No existing tags for this week. Starting with suffix 'a'."
+          else
+            # 4b. If a tag exists, increment the last letter
+            echo "Latest existing tag found: $LATEST_TAG"
+            LATEST_SUFFIX=${LATEST_TAG: -1}
+            NEXT_SUFFIX=$(echo "$LATEST_SUFFIX" | tr "a-y" "b-z")
+            echo "Latest suffix is '$LATEST_SUFFIX', next suffix will be '$NEXT_SUFFIX'."
+          fi
+
+          # 5. Compose the new tag
+          NEW_TAG="auto-main-${BASE_TAG}${NEXT_SUFFIX}"
+          echo "Generated new tag: $NEW_TAG"
+          
+          # 6. Set the new tag as output
+          echo "next_tag=${NEW_TAG}" >> "$GITHUB_OUTPUT"
+
       - name: Create Pre-release on main branch
-        # Run only if on the main branch AND if the commit step actually made changes
         if: steps.download_header.outputs.downloaded == 'true' && steps.commit_push.outputs.changes_detected == 'true' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          # Use date and short SHA for a unique pre-release tag
-          tag_name: "auto-${{ steps.get_branch.outputs.branch_name }}-${{ env.TZ }}-${{ steps.commit_push.outputs.commit_hash_short }}"
-          
-          name: "Auto-generated AIDs for ${{ steps.get_branch.outputs.branch_name }} (${{ steps.commit_push.outputs.commit_hash_short }})"
-          
-          body: "Automated pre-release with updated AID configuration files."
+          # Use the unique tag name generated above with a letter suffix
+          tag_name: ${{ steps.generate_tag.outputs.next_tag }}
+          name: "Auto-generated AIDs for main (${{ steps.generate_tag.outputs.next_tag }})"
+          body: "Automated pre-release with updated AID configuration files from AOSP 'main' branch."
           prerelease: true
-          # Upload all files from the release directory as assets
           files: release/*

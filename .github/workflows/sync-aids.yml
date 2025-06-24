@@ -25,10 +25,10 @@ jobs:
         id: download_header
         run: |
           BRANCH="${{ steps.get_branch.outputs.branch_name }}"
-          URL="https://android.googlesource.com/platform/system/core/+/refs/heads/${BRANCH}/include/private/android_filesystem_config.h?format=TEXT"
+          URL="https://android.googlesource.com/platform/system/core/+/refs/heads/${BRANCH}/libcutils/include/private/android_filesystem_config.h?format=TEXT"
           echo "Fetching from ${URL}"
           # Use curl -f to fail if the URL returns a 404 error
-          if curl -fL "${URL}" | base64 --decode > android_filesystem_config.h; then
+          if curl -sfL "${URL}" | base64 --decode > android_filesystem_config.h; then
             echo "Download successful."
             echo "downloaded=true" >> "$GITHUB_OUTPUT"
           else

@@ -21,12 +21,12 @@ usage() {
 # and outputs a clean "name:id" list.
 parse_aids() {
     # 1. Filter for lines starting with '#define AID_'
-    # 2. Use awk for parsing:
+    # 2. Use awk for parsing and validation:
     #    - Get the name part (e.g., AID_INET) and the ID part.
     #    - Remove the 'AID_' prefix.
     #    - Convert the name to lowercase.
     #    - Prepend 'aid_' to the name.
-    #    - Filter out non-system UIDs (heuristic: < 2900).
+    #    - Apply new validation rules.
     #    - Print in 'name:id' format.
     grep '^#define[ \t]\+AID_' | \
     awk '/[ \t]+[0-9]+/{
@@ -34,7 +34,11 @@ parse_aids() {
         sub(/^AID_/, "", name);
         name = tolower(name);
         id = $3;
-        if (id < 2900) {
+
+        # New validation rules:
+        # - UID must be in the range [1001, 9999]
+        # - Name must not end with _start or _end
+        if (id >= 1001 && id < 10000 && name !~ /_start$/ && name !~ /_end$/) {
             printf "aid_%s:%s\n", name, id
         }
     }'
@@ -74,7 +78,7 @@ generate_sysusers_conf() {
     # This is the modern, declarative way to create system users.
     # Format: type, name, id, gecos, home, shell
     echo "# Auto-generated systemd-sysusers config for Android IDs"
-    echo "# Type  Name       ID    GECOS         Home Directory  Shell"
+    echo "# Type  Name        ID    GECOS           Home Directory  Shell"
     while IFS=: read -r name id; do
         # Create group and user with the same name and ID
         printf 'g %s %s\n' "$name" "$id"
